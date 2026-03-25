@@ -319,6 +319,19 @@ seekBar.addEventListener('touchend', () => {
 // Poll every 3s
 setInterval(() => send({ action: 'get_status' }), 3000);
 
+// Silent audio to activate MediaSession
+const silentAudio = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=");
+silentAudio.loop = true;
+silentAudio.volume = 0.001;
+
+function activateSession() {
+  silentAudio.play().catch(()=>{});
+  document.removeEventListener("click", activateSession);
+  document.removeEventListener("touchend", activateSession);
+}
+document.addEventListener("click", activateSession);
+document.addEventListener("touchend", activateSession);
+
 connect();
 </script>
 </body>
