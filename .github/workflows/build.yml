@@ -1,0 +1,40 @@
+name: Build armhf
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: armv7-unknown-linux-musleabihf
+
+      - name: Install cross-compiler
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y gcc-arm-linux-gnueabihf musl-tools
+
+      - name: Configure linker
+        run: |
+          mkdir -p .cargo
+          cat >> .cargo/config.toml << 'EOF'
+          [target.armv7-unknown-linux-musleabihf]
+          linker = "arm-linux-gnueabihf-gcc"
+          EOF
+
+      - name: Build
+        run: cargo build --release --target armv7-unknown-linux-musleabihf
+        env:
+          CARGO_TARGET_ARMV7_UNKNOWN_LINUX_MUSLEABIHF_LINKER: arm-linux-gnueabihf-gcc
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mpv-remote-armhf
+          path: target/armv7-unknown-linux-musleabihf/release/mpv-remote
