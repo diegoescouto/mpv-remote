@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>mpv remote</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0f0f0f; color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; padding: 24px 16px; gap: 20px;
+  }
+  h1 { font-size: 1.1rem; color: #888; font-weight: 400; letter-spacing: 2px; text-transform: uppercase; }
+  #status { font-size: 0.8rem; padding: 4px 12px; border-radius: 20px; background: #1a1a1a; color: #666; }
+  #status.connected { color: #4caf50; }
+  #status.error { color: #f44336; }
+  .card { background: #1a1a1a; border-radius: 16px; padding: 20px; width: 100%; max-width: 400px; }
+  .card h2 { font-size: 0.75rem; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+  .main-controls { display: flex; justify-content: center; align-items: center; gap: 16px; }
+  .btn { background: #2a2a2a; border: none; border-radius: 12px; color: #fff; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, transform 0.1s; -webkit-tap-highlight-color: transparent; }
+  .btn:active { transform: scale(0.93); background: #3a3a3a; }
+  .btn-lg { width: 72px; height: 72px; font-size: 1.8rem; }
+  .btn-md { width: 56px; height: 56px; font-size: 1.3rem; }
+  .btn-sm { width: 44px; height: 44px; font-size: 1rem; }
+  .btn-primary { background: #e53935; }
+  .btn-primary:active { background: #c62828; }
+  .seek-row { display: flex; align-items: center; gap: 10px; }
+  #seek-bar { flex: 1; -webkit-appearance: none; height: 4px; border-radius: 2px; background: #333; outline: none; }
+  #seek-bar::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #e53935; cursor: pointer; }
+  #time-display { font-size: 0.8rem; color: #888; min-width: 80px; text-align: right; }
+  .volume-row { display: flex; align-items: center; gap: 10px; }
+  .vol-icon { font-size: 1.2rem; }
+  #volume-bar { flex: 1; -webkit-appearance: none; height: 4px; border-radius: 2px; background: #333; outline: none; }
+  #volume-bar::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #fff; cursor: pointer; }
+  .track-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .track-btn { background: #2a2a2a; border: 1px solid #333; border-radius: 8px; color: #ccc;
+    cursor: pointer; font-size: 0.8rem; padding: 6px 12px; transition: background 0.15s; }
+  .track-btn:active { background: #3a3a3a; }
+  .track-btn.active { background: #e53935; border-color: #e53935; color: #fff; }
+  .seek-btns { display: flex; gap: 8px; justify-content: center; }
+</style>
+</head>
+<body>
+<h1>mpv remote</h1>
+<div id="status">conectando...</div>
+<div class="card">
+  <h2>Posição</h2>
+  <div class="seek-row">
+    <input type="range" id="seek-bar" min="0" max="100" value="0" step="0.1">
+    <span id="time-display">0:00 / 0:00</span>
+  </div>
+  <br>
+  <div class="seek-btns">
+    <button class="btn btn-sm" onclick="seek(-30)">-30s</button>
+    <button class="btn btn-sm" onclick="seek(-10)">-10s</button>
+    <button class="btn btn-sm" onclick="seek(-5)">-5s</button>
+    <button class="btn btn-sm" onclick="seek(5)">+5s</button>
+    <button class="btn btn-sm" onclick="seek(10)">+10s</button>
+    <button class="btn btn-sm" onclick="seek(30)">+30s</button>
+  </div>
+</div>
+<div class="card">
+  <h2>Controles</h2>
+  <div class="main-controls">
+    <button class="btn btn-md" onclick="seek(-10)">⏪</button>
+    <button class="btn btn-lg btn-primary" id="play-btn" onclick="toggle()">⏸</button>
+    <button class="btn btn-md" onclick="seek(10)">⏩</button>
+    <button class="btn btn-md" onclick="fullscreen()">⛶</button>
+  </div>
+</div>
+<div class="card">
+  <h2>Volume</h2>
+  <div class="volume-row">
+    <span class="vol-icon">🔈</span>
+    <input type="range" id="volume-bar" min="0" max="100" value="100" oninput="setVolume(this.value)">
+    <span class="vol-icon">🔊</span>
+  </div>
+</div>
+<div class="card">
+  <h2>Faixa de áudio</h2>
+  <div class="track-grid" id="audio-tracks">
+    <button class="track-btn active" onclick="setAudio(1)">Faixa 1</button>
+    <button class="track-btn" onclick="setAudio(2)">Faixa 2</button>
+    <button class="track-btn" onclick="setAudio(3)">Faixa 3</button>
+  </div>
+</div>
+<div class="card">
+  <h2>Legenda</h2>
+  <div class="track-grid" id="sub-tracks">
+    <button class="track-btn active" onclick="setSub('off')">Desligada</button>
+    <button class="track-btn" onclick="setSub(1)">Legenda 1</button>
+    <button class="track-btn" onclick="setSub(2)">Legenda 2</button>
+    <button class="track-btn" onclick="setSub(3)">Legenda 3</button>
+  </div>
+</div>
+<script>
+  let ws, paused = false, duration = 0, seekDragging = false;
+  function connect() {
+    ws = new WebSocket(`ws://${window.location.hostname}:3000/ws`);
+    ws.onopen = () => { setStatus('conectado', 'connected'); startPolling(); };
+    ws.onclose = () => { setStatus('desconectado — reconectando...', 'error'); setTimeout(connect, 2000); };
+    ws.onerror = () => setStatus('erro de conexão', 'error');
+    ws.onmessage = (e) => { try { handleResponse(JSON.parse(e.data)); } catch {} };
+  }
+  function setStatus(text, cls) { const el = document.getElementById('status'); el.textContent = text; el.className = cls || ''; }
+  function send(msg) { if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg)); }
+  function toggle() { paused = !paused; document.getElementById('play-btn').textContent = paused ? '▶' : '⏸'; send({ action: paused ? 'pause' : 'play' }); }
+  function seek(s) { send({ action: 'seek', seconds: s }); }
+  function setVolume(v) { send({ action: 'volume', value: parseFloat(v) }); }
+  function fullscreen() { send({ action: 'fullscreen' }); }
+  function setAudio(id) {
+    send({ action: 'audio_track', id });
+    document.querySelectorAll('#audio-tracks .track-btn').forEach((b, i) => b.classList.toggle('active', i + 1 === id));
+  }
+  function setSub(id) {
+    if (id === 'off') {
+      send({ action: 'subtitle_off' });
+      document.querySelectorAll('#sub-tracks .track-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+    } else {
+      send({ action: 'subtitle_track', id });
+      document.querySelectorAll('#sub-tracks .track-btn').forEach((b, i) => b.classList.toggle('active', i === id));
+    }
+  }
+  function handleResponse(data) {
+    if (data.data !== undefined && typeof data.data === 'number') {
+      const pos = data.data;
+      if (!seekDragging && duration > 0) document.getElementById('seek-bar').value = (pos / duration) * 100;
+      document.getElementById('time-display').textContent = `${fmt(pos)} / ${fmt(duration)}`;
+    }
+  }
+  function fmt(s) { const m = Math.floor(s / 60); return `${m}:${Math.floor(s % 60).toString().padStart(2, '0')}`; }
+  const seekBar = document.getElementById('seek-bar');
+  seekBar.addEventListener('mousedown', () => seekDragging = true);
+  seekBar.addEventListener('touchstart', () => seekDragging = true);
+  seekBar.addEventListener('mouseup', () => { seekDragging = false; });
+  seekBar.addEventListener('touchend', () => { seekDragging = false; });
+  function startPolling() { setInterval(() => send({ action: 'get_status' }), 2000); }
+  connect();
+</script>
+</body>
+</html>
