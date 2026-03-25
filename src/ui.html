@@ -109,12 +109,12 @@ select:focus { border-color: #e53935; }
     <span class="time" id="time-dur">0:00</span>
   </div>
   <div class="seek-btns">
-    <button class="btn btn-sm" onclick="seek(-30)">-30s</button>
-    <button class="btn btn-sm" onclick="seek(-10)">-10s</button>
+    <button class="btn btn-sm" onclick="seek(-60)">-60s</button>
+    <button class="btn btn-sm" onclick="seek(-15)">-15s</button>
     <button class="btn btn-sm" onclick="seek(-5)">-5s</button>
     <button class="btn btn-sm" onclick="seek(5)">+5s</button>
-    <button class="btn btn-sm" onclick="seek(10)">+10s</button>
-    <button class="btn btn-sm" onclick="seek(30)">+30s</button>
+    <button class="btn btn-sm" onclick="seek(15)">+15s</button>
+    <button class="btn btn-sm" onclick="seek(60)">+60s</button>
   </div>
 </div>
 
@@ -122,9 +122,9 @@ select:focus { border-color: #e53935; }
 <div class="card">
   <h2>Controles</h2>
   <div class="main-controls">
-    <button class="btn btn-md" onclick="seek(-10)">⏪</button>
+    <button class="btn btn-md" onclick="seek(-15)">⏪</button>
     <button class="btn btn-lg btn-primary" id="play-btn" onclick="toggle()">⏸</button>
-    <button class="btn btn-md" onclick="seek(10)">⏩</button>
+    <button class="btn btn-md" onclick="seek(15)">⏩</button>
     <button class="btn btn-md" onclick="fullscreen()">⛶</button>
   </div>
 </div>
@@ -178,8 +178,8 @@ function setupMediaSession(title, artist) {
   navigator.mediaSession.metadata = new MediaMetadata({ title, artist, album: 'mpv remote' });
   navigator.mediaSession.setActionHandler('play', () => send({ action: 'play' }));
   navigator.mediaSession.setActionHandler('pause', () => send({ action: 'pause' }));
-  navigator.mediaSession.setActionHandler('seekbackward', () => seek(-10));
-  navigator.mediaSession.setActionHandler('seekforward', () => seek(10));
+  navigator.mediaSession.setActionHandler('seekbackward', () => seek(-15));
+  navigator.mediaSession.setActionHandler('seekforward', () => seek(15));
   navigator.mediaSession.setActionHandler('stop', () => stop());
 }
 
