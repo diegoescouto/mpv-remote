@@ -326,6 +326,7 @@ silentAudio.volume = 0.001;
 
 function activateSession() {
   setupMediaSession(document.getElementById("np-title").textContent, "");
+  setupMediaSession(document.getElementById("np-title").textContent, "");
   silentAudio.play().catch(()=>{});
   document.removeEventListener("click", activateSession);
   document.removeEventListener("touchend", activateSession);
