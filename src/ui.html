@@ -100,7 +100,7 @@
 <script>
   let ws, paused = false, duration = 0, seekDragging = false;
   function connect() {
-    ws = new WebSocket(`ws://${window.location.hostname}:3000/ws`);
+    ws = new WebSocket(`ws://192.168.2.104:3000/ws`);
     ws.onopen = () => { setStatus('conectado', 'connected'); startPolling(); };
     ws.onclose = () => { setStatus('desconectado — reconectando...', 'error'); setTimeout(connect, 2000); };
     ws.onerror = () => setStatus('erro de conexão', 'error');
